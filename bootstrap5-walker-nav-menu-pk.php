@@ -1,39 +1,15 @@
-<?php 
+<?php
+/**
+ * Bootstrap5_Walker_Nav_Menu Class.
+ */
 class Bootstrap5_Walker_Nav_Menu extends Walker_Nav_Menu {
 	/**
-	 * What the class handles.
+	 * start_lvl disply menu start lavel.
 	 *
-	 * @since 3.0.0
-	 * @var string
-	 *
-	 * @see Walker::$tree_type
-	 */
-	public $tree_type = array( 'post_type', 'taxonomy', 'custom' );
-
-	/**
-	 * Database fields to use.
-	 *
-	 * @since 3.0.0
-	 * @todo Decouple this.
-	 * @var string[]
-	 *
-	 * @see Walker::$db_fields
-	 */
-	public $db_fields = array(
-		'parent' => 'menu_item_parent',
-		'id'     => 'db_id',
-	);
-
-	/**
-	 * Starts the list before the elements are added.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @see Walker::start_lvl()
-	 *
-	 * @param string   $output Used to append additional content (passed by reference).
-	 * @param int      $depth  Depth of menu item. Used for padding.
-	 * @param stdClass $args   An object of wp_nav_menu() arguments.
+	 * @param string $output
+	 * @param integer $depth
+	 * @param stdClass $args
+	 * @return void
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = null ) {
 		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
@@ -46,14 +22,16 @@ class Bootstrap5_Walker_Nav_Menu extends Walker_Nav_Menu {
 		$indent = str_repeat( $t, $depth );
 
 		// Default class.
-		$classes = array( 'sub-menu' );
+		$classes = array();
+		$classes[] = 'dropdown-menu';
+		$classes[] = 'depth_'.$depth;
+		if( 0 < $depth ) {
+			$classes[] = 'dropdown-submenu';
+		}
 
 		/**
 		 * Filters the CSS class(es) applied to a menu list element.
 		 *
-		 * @since 4.8.0
-		 *
-		 * @param string[] $classes Array of the CSS classes that are applied to the menu `<ul>` element.
 		 * @param stdClass $args    An object of `wp_nav_menu()` arguments.
 		 * @param int      $depth   Depth of menu item. Used for padding.
 		 */
@@ -64,37 +42,7 @@ class Bootstrap5_Walker_Nav_Menu extends Walker_Nav_Menu {
 	}
 
 	/**
-	 * Ends the list of after the elements are added.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @see Walker::end_lvl()
-	 *
-	 * @param string   $output Used to append additional content (passed by reference).
-	 * @param int      $depth  Depth of menu item. Used for padding.
-	 * @param stdClass $args   An object of wp_nav_menu() arguments.
-	 */
-	public function end_lvl( &$output, $depth = 0, $args = null ) {
-		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
-			$t = '';
-			$n = '';
-		} else {
-			$t = "\t";
-			$n = "\n";
-		}
-		$indent  = str_repeat( $t, $depth );
-		$output .= "$indent</ul>{$n}";
-	}
-
-	/**
 	 * Starts the element output.
-	 *
-	 * @since 3.0.0
-	 * @since 4.4.0 The {@see 'nav_menu_item_args'} filter was added.
-	 * @since 5.9.0 Renamed `$item` to `$data_object` and `$id` to `$current_object_id`
-	 *              to match parent class for PHP 8 named parameter support.
-	 *
-	 * @see Walker::start_el()
 	 *
 	 * @param string   $output            Used to append additional content (passed by reference).
 	 * @param WP_Post  $data_object       Menu item data object.
@@ -113,10 +61,18 @@ class Bootstrap5_Walker_Nav_Menu extends Walker_Nav_Menu {
 			$t = "\t";
 			$n = "\n";
 		}
+
 		$indent = ( $depth ) ? str_repeat( $t, $depth ) : '';
 
 		$classes   = empty( $menu_item->classes ) ? array() : (array) $menu_item->classes;
 		$classes[] = 'menu-item-' . $menu_item->ID;
+		$classes[] = 'nav-item';
+
+		if( 0 === $depth && $args->walker->has_children ) {
+			$classes[] = 'dropdown';
+		}else if( $args->walker->has_children ) {
+			$classes[] = 'sublavel-dropdown';
+		}
 
 		/**
 		 * Filters the arguments for a single nav menu item.
@@ -141,6 +97,7 @@ class Bootstrap5_Walker_Nav_Menu extends Walker_Nav_Menu {
 		 * @param int      $depth     Depth of menu item. Used for padding.
 		 */
 		$class_names = implode( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $menu_item, $args, $depth ) );
+
 		$class_names = $class_names ? ' class="' . esc_attr( $class_names ) . '"' : '';
 
 		/**
@@ -200,6 +157,28 @@ class Bootstrap5_Walker_Nav_Menu extends Walker_Nav_Menu {
 		 * @param int      $depth     Depth of menu item. Used for padding.
 		 */
 		$atts = apply_filters( 'nav_menu_link_attributes', $atts, $menu_item, $args, $depth );
+		$link_ancor_class = 'menu-link';
+
+		if( 0 === $depth ) {
+			$link_ancor_class .= ' nav-link';
+		}else {
+			$link_ancor_class .= ' dropdown-item';
+		}
+
+		if( 0 === $depth && $args->walker->has_children ) {
+			$link_ancor_class .= ' dropdown-toggle';
+			$atts['data-bs-toggle']  = 'dropdown';
+			$atts['aria-haspopup']  = 'false';
+			$atts['aria-expanded']  = 'false';
+		}else if( $args->walker->has_children ) {
+			$link_ancor_class .= ' dropdown-toggle';
+			$atts['data-bs-toggle']  = 'dropdown';
+			$atts['aria-haspopup']  = 'false';
+			$atts['aria-expanded']  = 'false';
+		}
+		$atts['class'] = $link_ancor_class;
+
+		$atts = apply_filters( 'bs5_atts_value', $atts, $args, $depth );
 
 		$attributes = '';
 		foreach ( $atts as $attr => $value ) {
@@ -245,30 +224,6 @@ class Bootstrap5_Walker_Nav_Menu extends Walker_Nav_Menu {
 		 * @param stdClass $args        An object of wp_nav_menu() arguments.
 		 */
 		$output .= apply_filters( 'walker_nav_menu_start_el', $item_output, $menu_item, $depth, $args );
-	}
-
-	/**
-	 * Ends the element output, if needed.
-	 *
-	 * @since 3.0.0
-	 * @since 5.9.0 Renamed `$item` to `$data_object` to match parent class for PHP 8 named parameter support.
-	 *
-	 * @see Walker::end_el()
-	 *
-	 * @param string   $output      Used to append additional content (passed by reference).
-	 * @param WP_Post  $data_object Menu item data object. Not used.
-	 * @param int      $depth       Depth of page. Not Used.
-	 * @param stdClass $args        An object of wp_nav_menu() arguments.
-	 */
-	public function end_el( &$output, $data_object, $depth = 0, $args = null ) {
-		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
-			$t = '';
-			$n = '';
-		} else {
-			$t = "\t";
-			$n = "\n";
-		}
-		$output .= "</li>{$n}";
 	}
 
 }

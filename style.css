@@ -1,0 +1,20 @@
+/*
+	Megamenu style.
+*/
+.megamenu .dropdown-menu.dropdown-submenu {
+	display: block;
+	position: static;
+}
+.dropdown-menu.depth_0 li {
+	width: 50%;
+	float: left;
+	overflow: ;
+}
+.megamenu .dropdown-menu.depth_1.dropdown-submenu li {
+	display: block;
+	overflow: hidden;
+	width: 100%;
+}
+.megamenu ul ul a {
+	white-space: break-spaces;
+}
