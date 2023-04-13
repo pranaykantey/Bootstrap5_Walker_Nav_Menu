@@ -202,12 +202,25 @@ class Bootstrap5_Walker_Nav_Menu extends Walker_Nav_Menu {
 		 * @param int      $depth     Depth of menu item. Used for padding.
 		 */
 		$title = apply_filters( 'nav_menu_item_title', $title, $menu_item, $args, $depth );
+		
+		if( 'search-bar' == $title ){
 
-		$item_output  = $args->before;
-		$item_output .= '<a' . $attributes . '>';
-		$item_output .= $args->link_before . $title . $args->link_after;
-		$item_output .= '</a>';
-		$item_output .= $args->after;
+			$attributes = str_replace('nav-link', 'nav-link search-bar', $attributes);
+
+			$item_output  = $args->before;
+			$item_output .= '<a '.$attributes.'>';
+			$item_output .= '<i class="fa fa-search"></i>';
+			$item_output .= '<input type="search" name="s" placeholder="Search">';
+			$item_output .= '</a>';
+			$item_output .= $args->after;
+
+		}else {
+			$item_output  = $args->before;
+			$item_output .= '<a' . $attributes . '>';
+			$item_output .= $args->link_before . $title . $args->link_after;
+			$item_output .= '</a>';
+			$item_output .= $args->after;
+		}
 
 		/**
 		 * Filters a menu item's starting output.
